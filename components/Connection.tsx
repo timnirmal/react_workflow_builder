@@ -17,8 +17,9 @@ const Connection: React.FC<ConnectionProps> = ({ source, target }) => {
             y1={source.y}
             x2={target.x}
             y2={target.y}
-            stroke="black"
+            stroke="currentColor"
             strokeWidth="2"
+            className="text-gray-700 dark:text-gray-200"
         />
     );
 };
