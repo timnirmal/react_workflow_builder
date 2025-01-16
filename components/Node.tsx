@@ -8,7 +8,7 @@ interface NodeProps {
     label: string;
     onDrag: (id: string, x: number, y: number) => void;
     onEdgeSelect: (id: string, edge: "top" | "bottom" | "left" | "right") => void;
-    onDelete: (id: string) => void; // <-- Add delete prop
+    onDelete: (id: string) => void;
     highlightEdge: boolean; // Whether to highlight edges
 }
 
@@ -20,23 +20,27 @@ const Node: React.FC<NodeProps> = ({
                                        onDrag,
                                        onEdgeSelect,
     onDelete,
-    highlightEdge,
+    highlightEdge
                                    }) => {
     const [isDragging, setIsDragging] = useState(false);
     const [offset, setOffset] = useState({ x: 0, y: 0 });
 
     const handleMouseDown = (e: React.MouseEvent) => {
-        e.stopPropagation(); // <- IMPORTANT!
+        e.stopPropagation(); // Prevent parent handlers from firing
+        e.preventDefault(); // Prevent text selection or default browser behavior
         setIsDragging(true);
         setOffset({ x: e.clientX - x, y: e.clientY - y });
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
         if (!isDragging) return;
+        e.preventDefault(); // Prevent text selection while dragging
         onDrag(id, e.clientX - offset.x, e.clientY - offset.y);
     };
 
-    const handleMouseUp = () => setIsDragging(false);
+    const handleMouseUp = () => {
+        setIsDragging(false);
+    };
 
     // Highlight the edge UI if there's an active selection
     const edgeClass = highlightEdge
@@ -45,14 +49,17 @@ const Node: React.FC<NodeProps> = ({
 
     return (
         <div
-            className="absolute bg-blue-500 text-white font-bold rounded-lg shadow-md w-32 h-16 flex items-center justify-center cursor-move"
+    className={`absolute bg-blue-500 text-white font-bold rounded-lg shadow-md w-32 h-16 flex items-center justify-center ${
+        isDragging ? "cursor-grabbing" : "cursor-move"
+    } select-none`}
             style={{ top: y, left: x }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp} // Stop dragging if the mouse leaves the node
         >
             {label}
-
+            {/* Delete Button */}
                         <button
                 className="absolute -top-3 -right-3 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-md"
                 onClick={(e) => {
@@ -63,7 +70,7 @@ const Node: React.FC<NodeProps> = ({
                 X
             </button>
 
-            {/* Top Edge */}
+            {/* Edge Buttons */}
             <button
                 className={`absolute -top-3 left-1/2 transform -translate-x-1/2 ${edgeClass} text-white w-4 h-4 rounded-full`}
                 onClick={(e) => {
