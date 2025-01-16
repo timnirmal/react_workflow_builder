@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Node from "./Node";
 import Connection from "./Connection";
+import { v4 as uuidv4 } from "uuid";
 
 interface NodeType {
     id: string;
@@ -17,17 +18,27 @@ interface ConnectionType {
 const Canvas: React.FC = () => {
     const [nodes, setNodes] = useState<NodeType[]>([]);
     const [connections, setConnections] = useState<ConnectionType[]>([]);
+    const [tempEdge, setTempEdge] = useState<{ x1: number; y1: number; x2: number; y2: number } | null>(null);
     const [selectedEdge, setSelectedEdge] = useState<{
         nodeId: string;
         edge: string;
     } | null>(null);
 
+    const nodeCounter = useRef(1); // Fixed counter for node labels
+
+    useEffect(() => {
+        console.log("Nodes:", JSON.stringify(nodes, null, 2));
+        console.log("Connections:", JSON.stringify(connections, null, 2));
+    }, [nodes, connections]);
+
     const addNode = () => {
-        const id = `node-${nodes.length + 1}`;
+        const id = `node-${uuidv4()}`; // Use UUID for unique keys
+        const label = `Node ${nodeCounter.current}`; // Incremental label
         setNodes([
             ...nodes,
-            { id, x: 100, y: 100 + nodes.length * 50, label: `Node ${nodes.length + 1}` },
+            { id, x: 100, y: 100 + nodes.length * 50, label },
         ]);
+        nodeCounter.current += 1; // Increment the counter
     };
 
     const handleNodeDrag = (id: string, x: number, y: number) => {
@@ -38,31 +49,123 @@ const Canvas: React.FC = () => {
         );
     };
 
-    const handleEdgeSelect = (nodeId: string, edge: "top" | "bottom" | "left" | "right") => {
+    const handleMouseMove = (e: React.MouseEvent) => {
         if (selectedEdge) {
-            // Create a connection
-            setConnections([
-                ...connections,
+            // Update tempEdge dynamically as the user moves the cursor
+            setTempEdge((prevTempEdge) => {
+                if (!prevTempEdge) {
+                    // Handle case where prevTempEdge is null
+                    return null;
+                }
+
+                // Return updated edge with new x2, y2 values
+                return {
+                    ...prevTempEdge,
+                    x2: e.clientX,
+                    y2: e.clientY,
+                };
+            });
+        }
+    };
+
+
+    const handleMouseDownCanvas = (e: React.MouseEvent<HTMLDivElement>) => {
+        // If the user actually clicked on the background (i.e., the canvas itself),
+        // then reset. Otherwise, do nothing.
+        if (e.target === e.currentTarget) {
+            setTempEdge(null);
+            setSelectedEdge(null);
+        }
+    };
+
+    const deleteNode = (id: string) => {
+        // Remove the node
+        setNodes((prevNodes) => prevNodes.filter((node) => node.id !== id));
+
+        // Remove all connections involving the node
+        setConnections((prevConnections) =>
+            prevConnections.filter(
+                (connection) =>
+                    connection.source.nodeId !== id && connection.target.nodeId !== id
+            )
+        );
+    };
+
+    const deleteConnection = (index: number) => {
+        setConnections((prevConnections) =>
+            prevConnections.filter((_, i) => i !== index)
+        );
+    };
+
+
+
+    useEffect(() => {
+        console.log("Updated Connections:", JSON.stringify(connections, null, 2));
+    }, [connections]);
+
+    useEffect(() => {
+        console.log("Selected Edge Updated:", selectedEdge);
+    }, [selectedEdge]);
+
+    const handleEdgeSelect = (nodeId: string, edge: "top" | "bottom" | "left" | "right") => {
+        const node = nodes.find((n) => n.id === nodeId);
+
+        if (selectedEdge) {
+            // Debugging the selectedEdge and connection logic
+            console.log("Selected edge exists:", selectedEdge);
+            console.log("Current node and edge:", { nodeId, edge });
+
+            // Finalize connection
+            setConnections((prevConnections) => [
+                ...prevConnections,
                 {
                     source: selectedEdge,
                     target: { nodeId, edge },
                 },
             ]);
-            setSelectedEdge(null); // Reset selection
-        } else {
-            // Select the first edge
+
+            // Reset tempEdge and selectedEdge
+            setTempEdge(null);
+            setSelectedEdge(null);
+            console.log("Connection created!");
+        } else if (node) {
+            // Debugging the starting edge
+            const startEdgePosition = getEdgePosition(node, edge);
+            console.log("Starting edge selected:", { nodeId, edge, position: startEdgePosition });
+
+            // Select the first edge and initialize tempEdge
             setSelectedEdge({ nodeId, edge });
+            setTempEdge({
+                x1: startEdgePosition.x,
+                y1: startEdgePosition.y,
+                x2: startEdgePosition.x,
+                y2: startEdgePosition.y,
+            });
         }
     };
 
-    const removeConnection = (index: number) => {
-        setConnections((prevConnections) =>
-            prevConnections.filter((_, idx) => idx !== index)
-        );
+
+    const getEdgePosition = (node: NodeType, edge: string) => {
+        switch (edge) {
+            case "top":
+                return { x: node.x + 64, y: node.y };
+            case "bottom":
+                return { x: node.x + 64, y: node.y + 64 };
+            case "left":
+                return { x: node.x, y: node.y + 32 };
+            case "right":
+                return { x: node.x + 128, y: node.y + 32 };
+            default:
+                return { x: node.x, y: node.y };
+        }
     };
 
     return (
-        <div className="relative w-full h-screen bg-gray-100 overflow-hidden border border-gray-300">
+        <div
+            className="relative w-full h-screen bg-gray-100 overflow-hidden border border-gray-300"
+            onMouseMove={handleMouseMove}
+            onMouseDown={handleMouseDownCanvas}
+        >
             <button
                 className="absolute top-2 left-2 bg-green-500 text-white px-4 py-2 rounded"
                 onClick={addNode}
@@ -79,59 +182,64 @@ const Canvas: React.FC = () => {
                     label={node.label}
                     onDrag={handleNodeDrag}
                     onEdgeSelect={handleEdgeSelect}
+                    onDelete={deleteNode}
+                    highlightEdge={!!selectedEdge}
                 />
+
             ))}
+
             <svg className="absolute w-full h-full pointer-events-none">
+                {/* Draw existing connections */}
                 {connections.map((connection, idx) => {
                     const sourceNode = nodes.find((n) => n.id === connection.source.nodeId)!;
                     const targetNode = nodes.find((n) => n.id === connection.target.nodeId)!;
 
-                    // Calculate edge positions
-                    const getEdgePosition = (node: NodeType, edge: string) => {
-                        switch (edge) {
-                            case "top":
-                                return { x: node.x + 64, y: node.y };
-                            case "bottom":
-                                return { x: node.x + 64, y: node.y + 64 };
-                            case "left":
-                                return { x: node.x, y: node.y + 32 };
-                            case "right":
-                                return { x: node.x + 128, y: node.y + 32 };
-                            default:
-                                return { x: node.x, y: node.y };
-                        }
-                    };
-
                     const sourcePos = getEdgePosition(sourceNode, connection.source.edge);
                     const targetPos = getEdgePosition(targetNode, connection.target.edge);
 
-                    // Calculate the middle of the connection for the remove button
-                    const midPoint = {
-                        x: (sourcePos.x + targetPos.x) / 2,
-                        y: (sourcePos.y + targetPos.y) / 2,
-                    };
+                    // Calculate the midpoint of the connection for the delete button
+                    const midX = (sourcePos.x + targetPos.x) / 2;
+                    const midY = (sourcePos.y + targetPos.y) / 2;
 
                     return (
                         <React.Fragment key={idx}>
-                            <Connection source={sourcePos} target={targetPos} />
+                            <Connection source={sourcePos} target={targetPos}/>
+
+                            {/* Delete button */}
                             <foreignObject
-                                x={midPoint.x - 10}
-                                y={midPoint.y - 10}
+                                x={midX - 10}
+                                y={midY - 10}
                                 width={20}
                                 height={20}
                                 className="pointer-events-auto"
                             >
                                 <button
-                                    className="bg-red-500 text-white w-4 h-4 rounded-full flex items-center justify-center text-xs"
-                                    onClick={() => removeConnection(idx)}
+                                    className="w-full h-full bg-red-500 text-white rounded-full text-xs flex items-center justify-center"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        deleteConnection(idx); // Call deleteConnection
+                                    }}
                                 >
-                                    ✕
+                                    X
                                 </button>
                             </foreignObject>
                         </React.Fragment>
                     );
                 })}
+                {/* Temporary connection line */}
+                {tempEdge && (
+                    <line
+                        x1={tempEdge.x1}
+                        y1={tempEdge.y1}
+                        x2={tempEdge.x2}
+                        y2={tempEdge.y2}
+                        stroke="blue"
+                        strokeWidth="2"
+                        strokeDasharray="5,5"
+                    />
+                )}
             </svg>
+
         </div>
     );
 };
