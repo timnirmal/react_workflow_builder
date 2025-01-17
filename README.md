@@ -1,36 +1,129 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# **Custom Workflow Builder**
 
-## Getting Started
+A lightweight, customizable workflow builder built with **React** and **TailwindCSS**. This tool enables users to create and visualize workflows with drag-and-drop nodes, interactive connections, and a clean, modern UI.
 
-First, run the development server:
+## **Features**
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- 🖱️ Drag-and-drop nodes.
+- 🔗 Create and manage interactive connections.
+- 🎛️ Custom context menu for node actions.
+- 🌙 Dark mode toggle for better accessibility.
+- ⚡ Built with React and styled using TailwindCSS.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## **Preview**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### **Workflow Builder**
+![1_thN4UehaOcTW5gdymM7w9Q.webp](docs/1_thN4UehaOcTW5gdymM7w9Q.webp)
 
-## Learn More
+### **Context Menu**
+![1_4RYxGoJA-TJvu2kHF4bJXg.webp](docs/1_4RYxGoJA-TJvu2kHF4bJXg.webp)
 
-To learn more about Next.js, take a look at the following resources:
+### **Edge Drawing**
+![1_svNmSFl4-g0RHYYj-V7cNQ.webp](docs/1_svNmSFl4-g0RHYYj-V7cNQ.webp)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## **Getting Started**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### **Prerequisites**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Before running the project, ensure you have the following installed:
+- Node.js (v16+)
+- npm or yarn
+- A code editor (e.g., VSCode)
+
+### **Installation**
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/workflow-builder.git
+   cd workflow-builder
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+
+4. Open your browser and navigate to `http://localhost:3000`.
+
+---
+
+## **Code Structure**
+
+| File/Folder                | Description                                                                                                                      |
+|----------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| `app/page.tsx`             | The entry point of the application.  you need to add `style={{ width: "100%", height: "100%" }}` to the parent component of canvas |
+| `components/Canvas.tsx`    | The main canvas to render nodes and connections.                                                                                 |
+| `components/Node.tsx`      | The individual node component with drag-and-drop functionality.                                                                  |
+| `components/Connection.tsx` | Handles the rendering of connections between nodes.                                                                              |
+
+---
+
+## **Customization**
+
+### **Adding Nodes**
+Nodes are dynamically added by clicking the **"Add Node"** button. Each node includes:
+- A draggable interface.
+- Connectable edges (top, bottom, left, right).
+- A delete button for easy removal.
+
+### **Connecting Nodes**
+Click on an edge of one node and then click on the edge of another node to create a connection.
+
+### **Dark Mode**
+Toggle dark mode with the **"Dark Mode"** button in the top-left corner.
+
+---
+
+## **Future Improvements**
+
+- 🌟 **Node Customization:** Allow renaming and adding icons/colors to nodes.
+- 💾 **Save/Load Workflows:** Export and import workflows as JSON.
+- ⚡ **Keyboard Shortcuts:** Streamline user interaction.
+
+---
+
+## **Contributing**
+
+Contributions are welcome! 🎉  
+Feel free to submit issues or pull requests to enhance the project.
+
+### **Steps to Contribute:**
+1. Fork the repository.
+2. Create a new branch:
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+3. Commit your changes:
+   ```bash
+   git commit -m "Add your message here"
+   ```
+4. Push to your fork and submit a pull request.
+
+---
+
+## **License**
+
+This project is licensed under the **MIT License**.  
+Feel free to use, modify, and distribute it as per the license terms.
+
+---
+
+## **Contact**
+
+Have questions or suggestions?  
+Feel free to reach out or drop an issue on GitHub!  
+[Thimira Nirmal](https://timnirmal.com) | [LinkedIn](https://www.linkedin.com/in/thimiranirmal/)
